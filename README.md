@@ -1,0 +1,2 @@
+# Solo-DnD-App
+A game that lets you play Dungeons and Dragons solo. Based on the Dungeons &amp; Dragons Solo Adventurers Gudebook 1-2. Eventually, I will add more books in the future (hopefully kinda). Personal project because I'm bored.
