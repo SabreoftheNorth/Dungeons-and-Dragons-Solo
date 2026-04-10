@@ -20,7 +20,7 @@ TAB_NAMES = [
 ]
 
 MENU_SHORTCUTS = {
-    "new": "Ctrl+N",
+    "new":  "Ctrl+N",
     "load": "Ctrl+O",
     "save": "Ctrl+S",
     "quit": "Ctrl+Q"

@@ -1,4 +1,8 @@
 # Solo-DnD-App
+Dungeons and Dragons kicks butt, however it can be hard to find people to play it with.
+
+SO HERE IT IS LADIES AND GENTLEMEN!!!
+
 A game that lets you play Dungeons and Dragons solo. Based on the Dungeons &amp; Dragons Solo Adventurers Gudebook 1-2. Eventually, I will add more books in the future (hopefully kinda). Personal project because I'm bored.
 
 The basic of the character sheet/system in DND (based on what I know)
