@@ -45,6 +45,45 @@ SAVING_THROW_ABILITIES = {
     "charisma": "charisma",
 }
 
+PLAYABLE_RACES = [
+    "Human",
+    "High Elf",
+    "Wood Elf",
+    "Hill Dwarf",
+    "Mountain Dwarf",
+    "Lightfoot Halfling",
+    "Stout Halfling",
+    "Forest Gnome",
+    "Rock Gnome",
+    "Half-Elf",
+    "Half-Orc",
+    "Tiefling",
+    "Dragonborn",
+]
+
+#TODO MAKE CLASSES SELECTABLE TOO
+
+#oooh bonuses...
+#each race has a bonus
+RACE_BONUSES: dict[str, dict[str, int] | None] = {
+    "Human":                {"strength": 1, "dexterity": 1, "constitution": 1,
+                            "intelligence": 1, "wisdom": 1, "charisma": 1},
+    "High Elf":             {"dexterity": 2, "intelligence": 1},
+    "Wood Elf":             {"dexterity": 2, "wisdom": 1},
+    "Hill Dwarf":           {"constitution": 2, "wisdom": 1},
+    "Mountain Dwarf":       {"constitution": 2, "strength": 2},
+    "Lightfoot Halfling":   {"dexterity": 2, "charisma": 1},
+    "Stout Halfling":       {"dexterity": 2, "constitution": 1},
+    "Forest Gnome":         {"intelligence": 2, "dexterity": 1},
+    "Rock Gnome":           {"intelligence": 2, "constitution": 1},
+    "Half-Elf":             None,   # because the player will pick any two abilities
+                                    #to recieve +1. However I'll prolly forget abt
+                                    #this so
+                                    #UPDATE: I didnt... nice
+    "Half-Orc":             {"strength": 2, "constitution": 1},
+    "Tiefling":             {"charisma": 2, "intelligence": 1},
+    "Dragonborn":           {"strength": 2, "charisma": 1},
+}
 #presets for personality, ideal, etc.
 PERSONALITY_TRAIT_PRESENTS = [
     #presets coming soon
@@ -177,7 +216,9 @@ class Character:
     level:              int = 1
     background:         str = ""
     player_name:        str = ""
-    race:               str = "" #TODO MAKE IT INTO LIKE A CHOICE THINGY IDK
+    race:               str = PLAYABLE_RACES[0]
+    #AHHH I DIDNT FORGET ABT IT NICE
+    half_elf_bonus_choices: list[str] = field(default_factory=list)
     alignment:          str = ""
     experience_points:  int = 0
 
@@ -270,18 +311,41 @@ class Character:
         return {skill: self.skill_total(skill)
             for skill in SKILL_ABILITY_MAP}
     
+    def apply_race_bonuses(self) -> None:
+        #this will apply racial ASI bonuses to the ability scores
+        #it should be called once during character creation when the race is
+        #set. For half-elves, half_elf_bonus_choices must be populated first
+        #with exactly 2 ability names before calling.
+        if self.race == "Half-Elf":
+            #exactly two choices to validate
+            if len(self.half_elf_bonus_choices) != 2:
+                raise ValueError(
+                    "Half-Elves need exactly two ability choices as bonuses"
+                )
+            for ability in self.half_elf_bonus_choices:
+                current = getattr(self.ability_scores, ability)
+                setattr(self.ability_scores, ability, current + 1)
+
+        elif race_asi is not None:
+            for ability, bonus in race_asi.items():
+                current = getattr(self.ability_scores, ability)
+                setattr(self.ability_scores, ability, current + bonus)
+                #why yellow, hmm we'll fix it.
+                #TODO WHY
+    
     #the rest is for the serialisation helpers, to be used by file_handler.py
     def to_dict(self) -> dict:
         #this is so that the character would be flattened into a JSON-like dict.
         return {
-            "character_name":       self.character_name,
-            "class_name":           self.class_name,
-            "level":                self.level,
-            "background":           self.background,
-            "player_name":          self.player_name,
-            "race":                 self.race, #STILL HAVENT MADE IT INTO CHOICES
-            "alignment":            self.alignment,
-            "experience_points":    self.experience_points,
+            "character_name":           self.character_name,
+            "class_name":               self.class_name,
+            "level":                    self.level,
+            "background":               self.background,
+            "player_name":              self.player_name,
+            "race":                     self.race,
+            "half_elf_bonus_choices":   self.half_elf_bonus_choices,
+            "alignment":                self.alignment,
+            "experience_points":        self.experience_points,
             
             "ability_scores": {
                 ability: getattr(self.ability_scores, ability)
@@ -352,6 +416,7 @@ class Character:
         c.background =              data.get("background", "")
         c.player_name =             data.get("player_name", "")
         c.race =                    data.get("race", "")
+        c.half_elf_bonus_choices =  data.get("half_elf_bonus_choices", [])
         c.alignment =               data.get("alignment", "")
         c.experience_points =       data.get("experience_points", 0)
 
