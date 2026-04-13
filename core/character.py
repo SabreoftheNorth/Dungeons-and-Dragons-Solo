@@ -177,7 +177,7 @@ class Character:
     level:              int = 1
     background:         str = ""
     player_name:        str = ""
-    race:               str = "" #i am obsessed with elves
+    race:               str = "" #TODO MAKE IT INTO LIKE A CHOICE THINGY IDK
     alignment:          str = ""
     experience_points:  int = 0
 
@@ -270,4 +270,142 @@ class Character:
         return {skill: self.skill_total(skill)
             for skill in SKILL_ABILITY_MAP}
     
-#TODO CONTINUE
+    #the rest is for the serialisation helpers, to be used by file_handler.py
+    def to_dict(self) -> dict:
+        #this is so that the character would be flattened into a JSON-like dict.
+        return {
+            "character_name":       self.character_name,
+            "class_name":           self.class_name,
+            "level":                self.level,
+            "background":           self.background,
+            "player_name":          self.player_name,
+            "race":                 self.race, #STILL HAVENT MADE IT INTO CHOICES
+            "alignment":            self.alignment,
+            "experience_points":    self.experience_points,
+            
+            "ability_scores": {
+                ability: getattr(self.ability_scores, ability)
+                for ability in ABILITIES
+            },
+
+            "saving_throws": {
+                ability: getattr(self.saving_throws, ability)
+                for ability in ABILITIES
+            },
+
+            "skills": {
+                skill: getattr(self.skills, skill)
+                for skill in SKILL_ABILITY_MAP
+            },
+
+            "expertise": self.skills.expertise,
+
+            #combat scenario
+            "inspiration":      self.inspiration,
+            "armor_class":      self.armor_class,
+            "speed":            self.speed,
+            "hit_points": {
+                "maximum":      self.hit_points.maximum,
+                "current":      self.hit_points.current,
+                "minimum":      self.hit_points.temporary,
+            },
+            "hit_dice": {
+                "total":        self.hit_dice.total,
+                "remaining":    self.hit_dice.remaining,
+            },
+            "death_saves": {
+                "successes":    self.death_saves.successes,
+                "failures":     self.death_saves.failures,
+            },
+            "attacks": [{
+                    "name":        atk.name,
+                    "atk_bonus":   atk.atk_bonus,
+                    "damage_type": atk.damage_type,
+                }
+                for atk in self.attacks
+            ],
+            "spellcasting_notes": self.spellcasting_notes,
+
+            "personality_traits":   self.personality_traits,
+            "ideals":               self.ideals,
+            "bonds":                self.bonds,
+            "flaws":                self.flaws,
+
+            #bottom section
+            "other_proficiencies_languages": self.other_proficiencies_languages,
+            "equipment":                     self.equipment,
+            "features_and_traits":           self.features_and_traits,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> "Character":
+        #this will reconstruct  a character from the saved JSON dict...
+        c = cls()
+        
+        #whattheactualfuck, wait so how, fuck it.
+        #OH OKAY got it nvm
+
+        # just like before...
+        c.character_name =          data.get("character_name", "")
+        c.class_name =              data.get("class_name", "")
+        c.level =                   data.get("level", 1)
+        c.background =              data.get("background", "")
+        c.player_name =             data.get("player_name", "")
+        c.race =                    data.get("race", "")
+        c.alignment =               data.get("alignment", "")
+        c.experience_points =       data.get("experience_points", 0)
+
+        for ability in ABILITIES:
+            setattr(c.ability_scores, ability, 
+                    data.get("ability_scores", {}).get(ability, 10))
+            
+        for ability in ABILITIES:
+            setattr(c.saving_throws, ability,
+                    data.get("saving_throws", {}).get(ability, False))
+            
+        for skill in SKILL_ABILITY_MAP:
+            setattr(c.skills, skill,
+                    data.get("skills", {}).get(skill, False))
+            
+        c.skills.expertise =        data.get("expertise",
+                                             {s: False for s in SKILL_ABILITY_MAP})
+
+        c.inspiration =             data.get("inspiration", False)
+        c.armor_class =             data.get("armor_class", 10)
+        c.speed =                   data.get("speed", 30)
+
+        hp =                        data.get("hit_points", {})
+        c.hit_points.maximum =      hp.get("maximum", 0)
+        c.hit_points.current =      hp.get("current", 0)
+        c.hit_points.temporary =    hp.get("temporary", 0)
+
+        hd =                        data.get("hit_dice", {})
+        c.hit_dice.total =          hd.get("total", "")
+        c.hit_dice.remaining =      hd.get("remaining", 0)
+
+        ds =                        data.get("death_saves", {})
+        c.death_saves.successes =   ds.get("successes", 0)
+        c.death_saves.failures =    ds.get("failures", 0)
+
+        # i really don't understand what did i do wrong here but whatever
+        c.attacks = [
+            Attack(
+                name=               a.get("name", ""),
+                atk_bonus=          a.get("atk_bonus", ""),
+                damage_type=        a.get("damage_type", "")
+            )
+            for a in data.get("attacks", [])
+        ]
+        c.spellcasting_notes =       data.get("spellcasting_notes", "")
+
+        c.personality_traits =       data.get("personality_traits", "")
+
+        c.ideals =                   data.get("ideals", "")
+        c.bonds =                    data.get("bonds", "")
+        c.flaws =                    data.get("flaws", "")
+
+        c.other_proficiencies_languages = data.get("other_proficiencies_languages", "")
+        c.equipment =                     data.get("equipment", "")
+        c.features_and_traits =           data.get("features_and_traits", "")
+
+        return c
