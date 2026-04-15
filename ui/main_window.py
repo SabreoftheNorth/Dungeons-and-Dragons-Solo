@@ -5,6 +5,20 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QAction
 from PyQt6.QtCore import Qt
 
+#we're wiring the character sheet page into the main window
+from ui.widgets.character_sheet import CharacterSheetWidget
+from core.character import Character
+
+#TODO FIX THE ERROR DURING APPLICATION START.
+"""
+Traceback (most recent call last):
+  File "/home/deopg/Documents/Codes/Python/Dungeons-and-Dragons-Solo/main.py", line 3, in <module>
+    from ui.main_window import MainWindow
+  File "/home/deopg/Documents/Codes/Python/Dungeons-and-Dragons-Solo/ui/main_window.py", line 9, in <module>
+    from ui.widgets.character_sheet import CharacterSheetWidget
+ImportError: cannot import name 'CharacterSheetWidget' from 'ui.widgets.character_sheet' (/home/deopg/Documents/Codes/Python/Dungeons-and-Dragons-Solo/ui/widgets/character_sheet.py)
+"""
+
 #constants used throughout this code
 WINDOW_TITLE = "Solo DnD Adventures"
 WINDOW_MIN_SIZE = (1100, 750)
@@ -111,9 +125,10 @@ class MainWindow(QMainWindow):
         self._tabs.setTabPosition(QTabWidget.TabPosition.North)
         self._tabs.setDocumentMode(True)
 
-        #adding some placeholder tabs
+        #not using placeholder tabs anymore lol
         for tab_name in TAB_NAMES:
-            self._tabs.addTab(QWidget(), tab_name)
+            self._character_sheet = CharacterSheetWidget(Character())
+            self._tabs.addTab(self._character_sheet, "Character")
 
         self._root_layout.addWidget(self._tabs)
 
